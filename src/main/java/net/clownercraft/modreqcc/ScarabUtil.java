@@ -53,4 +53,15 @@ public class ScarabUtil {
                 ChatColor.GRAY + (t.getComments().get(0).getMessage().length() > 13 ? t.getComments().get(0).getMessage().subSequence(0,12) : t.getComments().get(0).getMessage()) + "...";
     }
 
+    public static long stringToSeed(String s) {
+        if (s == null) {
+            return 0;
+        }
+        long hash = 0;
+        for (char c : s.toCharArray()) {
+            hash = 31L*hash + c;
+        }
+        return hash;
+    }
+
 }

@@ -41,7 +41,8 @@ public class TicketManager {
                     cmnts,
                     ScarabUtil.getLocationFromString(set.getString("location")),
                     set.getBoolean("closed"),
-                    set.getLong("timestamp")));
+                    set.getLong("timestamp"),
+                    set.getString("server")));
         }
 
         return tickets;
@@ -64,7 +65,8 @@ public class TicketManager {
                     cmnts,
                     ScarabUtil.getLocationFromString(set.getString("location")),
                     set.getBoolean("closed"),
-                    set.getLong("timestamp")));
+                    set.getLong("timestamp"),
+                    set.getString("server")));
         }
 
         return tickets;
@@ -115,7 +117,8 @@ public class TicketManager {
             Ticket t = new Ticket(id, Bukkit.getOfflinePlayer(UUID.fromString(s.getString("author"))),
                     cmnts,
                     ScarabUtil.getLocationFromString(s.getString("location")),
-                    s.getBoolean("closed"), s.getLong("timestamp"));
+                    s.getBoolean("closed"), s.getLong("timestamp"),
+                    s.getString("server"));
             return t;
 
         } catch (SQLException e) {
@@ -179,12 +182,14 @@ public class TicketManager {
         Connection c = ModReqCC.getConnection();
 
 
-        PreparedStatement st = c.prepareStatement("INSERT INTO tickets (author, location, closed, timestamp) VALUES(?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement st = c.prepareStatement("INSERT INTO tickets (author, location, closed, timestamp, server) VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
         st.setString(1, author.getUniqueId().toString());
         st.setString(2, ScarabUtil.locationToString(l));
         st.setBoolean(3,false);
         st.setLong(4, currTime);
+        st.setString(5, ModReqCC.getBungeeCordServerName());
+
 
         st.executeUpdate();
         ResultSet s = st.getGeneratedKeys();
@@ -209,7 +214,7 @@ public class TicketManager {
 
         TicketComment comment = new TicketComment(commentID, ticketID, author, message, currTime);
 
-        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime);
+        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, ModReqCC.getBungeeCordServerName());
 
         for(Player p : Bukkit.getOnlinePlayers()){
             if(p.hasPermission("modreq.moderator")){

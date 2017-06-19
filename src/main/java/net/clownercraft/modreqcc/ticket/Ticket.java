@@ -22,14 +22,16 @@ public class Ticket {
     private Location location;
     private boolean closed;
     private long timestamp;
+    private String server;
 
-    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, Location location, boolean closed, long timestamp){
+    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, Location location, boolean closed, long timestamp, String server){
         this.id = id;
         this.author = author;
         this.comments = comments;
         this.location = location;
         this.closed = closed;
         this.timestamp = timestamp;
+        this.server = server;
     }
 
     public TicketComment addComment(Player author, String message) throws SQLException {
@@ -43,6 +45,10 @@ public class Ticket {
 
     public int getID(){
         return this.id;
+    }
+
+    public String getServer() {
+        return this.server;
     }
 
     public long getTimestamp(){
