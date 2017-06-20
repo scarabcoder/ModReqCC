@@ -6,9 +6,9 @@ commands:
   modreq:
     description: Create a new ticket.
     aliases: [report]
-  check:
-    description: Check status of specific ticket.
   status:
     description: Get status of your currently open tickets.
   ticket:
     description: Modify a specific ticket.
+  close:
+    description: Alias for /ticket <id> close

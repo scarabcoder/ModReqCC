@@ -28,8 +28,9 @@ public class StatusCommand implements CommandExecutor {
                     }else{
                         p.sendMessage(ChatColor.GOLD + "---- Your tickets: ----");
                         for(Ticket t : tickets){
-                            p.sendMessage(ChatColor.GOLD + "#" + t.getID() + ChatColor.AQUA + " @ " + t.getCreationDate().toString() + ChatColor.DARK_GREEN + " [" + (t.isClosed() ? "CLOSED" : "OPEN") + "] " +
-                                    ChatColor.GRAY + (t.getComments().get(0).getMessage().length() > 13 ? t.getComments().get(0).getMessage().subSequence(0,12) : t.getComments().get(0).getMessage()) + "...");
+                            p.sendMessage(ScarabUtil.getSingleLineDetails(t));
+                           // p.sendMessage(ChatColor.GOLD + "#" + t.getID() + ChatColor.AQUA + " @ " + t.getCreationDate().toString() + ChatColor.DARK_GREEN + " [" + (t.isClosed() ? "CLOSED" : "OPEN") + "] " +
+                           //         ChatColor.GRAY + (t.getComments().get(0).getMessage().length() > 13 ? t.getComments().get(0).getMessage().subSequence(0,12) : t.getComments().get(0).getMessage()) + "...");
                         }
                         p.sendMessage(ChatColor.GOLD + "Use /status <id> for more info.");
                     }

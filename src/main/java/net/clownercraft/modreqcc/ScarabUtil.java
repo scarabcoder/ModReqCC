@@ -5,6 +5,8 @@ import net.clownercraft.modreqcc.ticket.TicketComment;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -61,8 +63,20 @@ public class ScarabUtil {
     }
 
     public static String getSingleLineDetails(Ticket t){
-        return  ChatColor.GOLD + "#" + t.getID() + ChatColor.AQUA + " @ " + t.getCreationDate().toString() + ChatColor.DARK_GREEN + " [" + (t.isClosed() ? "CLOSED" : "OPEN") + "] " +
+
+        String flags = "";
+        for(TicketFlag flag : t.getFlags()){
+            flags += " " + ChatColor.RESET + "[" + ChatColor.DARK_AQUA + flag.toString() + ChatColor.RESET + "]";
+        }
+
+        System.out.println(flags);
+
+        return  ChatColor.GOLD + "#" + t.getID() + ChatColor.AQUA + " @ " + t.getCreationDate().toString() + ChatColor.DARK_GREEN + " [" + (t.isClosed() ? "CLOSED" : "OPEN") + "]" + flags + " " +
                 ChatColor.GRAY + (t.getComments().get(0).getMessage().length() > 13 ? t.getComments().get(0).getMessage().subSequence(0,12) : t.getComments().get(0).getMessage()) + "...";
+    }
+
+    public static void playNotificationSound(Player p){
+        p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.8f, 3f);
     }
 
     public static long stringToSeed(String s) {

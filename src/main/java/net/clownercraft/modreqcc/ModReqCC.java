@@ -3,7 +3,7 @@ package net.clownercraft.modreqcc;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.sun.xml.internal.ws.server.ServerSchemaValidationTube;
+import net.clownercraft.modreqcc.command.CloseCommand;
 import net.clownercraft.modreqcc.command.ModReqCommand;
 import net.clownercraft.modreqcc.command.StatusCommand;
 import net.clownercraft.modreqcc.command.TicketCommand;
@@ -76,6 +76,7 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
                 "  `closed` TINYINT(1) NULL," +
                 "  `timestamp` BIGINT NULL," +
                 "  `server` MEDIUMTEXT NULL," +
+                "  `flags` MEDIUMTEXT NULL," +
                 "  PRIMARY KEY (`id`))";
 
         String createCommentsTable = "CREATE TABLE IF NOT EXISTS `" + this.getConfig().getString("mysql.schema") + "`.`ticketcomments` (\n" +
@@ -112,7 +113,7 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
                 int ts = 0;
                 List<Ticket> openTickets = null;
                 try {
-                    openTickets = TicketManager.getOpenTickets();
+                    openTickets = new CopyOnWriteArrayList<Ticket>(TicketManager.getOpenTickets());
 
                     for(Ticket t : openTickets){
                         if(t.getFlags().contains(TicketFlag.ONLINE)){
@@ -181,6 +182,7 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
     private void registerCommands(){
         this.getCommand("modreq").setExecutor(new ModReqCommand());
         this.getCommand("status").setExecutor(new StatusCommand());
+        this.getCommand("close").setExecutor(new CloseCommand());
         this.getCommand("ticket").setExecutor(new TicketCommand());
     }
 

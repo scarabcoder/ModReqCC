@@ -41,7 +41,8 @@ public class TicketManager {
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : set.getString("flags").split(",")){
-                flags.add(TicketFlag.valueOf(str));
+                if(str != "")
+                    flags.add(TicketFlag.valueOf(str));
             }
 
             tickets.add(new Ticket(set.getInt("id"),
@@ -73,7 +74,9 @@ public class TicketManager {
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : set.getString("flags").split(",")){
-                flags.add(TicketFlag.valueOf(str));
+                if(str != ""){
+                    flags.add(TicketFlag.valueOf(str));
+                }
             }
 
             tickets.add(new Ticket(set.getInt("id"),
@@ -131,12 +134,17 @@ public class TicketManager {
             ResultSet s = st.executeQuery();
             if(!s.next()) return null;
             Location l = null;
-            if(s.getString("server").equalsIgnoreCase(ModReqCC.getBungeeCordServerName())){
+            String serverName = "none";
+            if(ModReqCC.getBungeeCordServerName() != null){
+                serverName = ModReqCC.getBungeeCordServerName();
+            }
+            if(s.getString("server").equalsIgnoreCase(serverName)){
                 l = ScarabUtil.getLocationFromString(s.getString("location"));
             }
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : s.getString("flags").split(",")){
+                if(str != "")
                 flags.add(TicketFlag.valueOf(str));
             }
 
@@ -223,14 +231,14 @@ public class TicketManager {
         Connection c = ModReqCC.getConnection();
 
 
-        PreparedStatement st = c.prepareStatement("INSERT INTO tickets (author, location, closed, timestamp, server) VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement st = c.prepareStatement("INSERT INTO tickets (author, location, closed, timestamp, server, flags) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
         st.setString(1, author.getUniqueId().toString());
         st.setString(2, ScarabUtil.locationToString(l));
         st.setBoolean(3,false);
         st.setLong(4, currTime);
-        st.setString(5, ModReqCC.getBungeeCordServerName());
-
+        st.setString(5, (ModReqCC.getBungeeCordServerName() == null ? "none" : ModReqCC.getBungeeCordServerName()));
+        st.setString(6,"");
 
         st.executeUpdate();
         ResultSet s = st.getGeneratedKeys();
@@ -255,7 +263,7 @@ public class TicketManager {
 
         TicketComment comment = new TicketComment(commentID, ticketID, author, message, currTime);
 
-        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, ModReqCC.getBungeeCordServerName(), new ArrayList<TicketFlag>());
+        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, (ModReqCC.getBungeeCordServerName() == null ? "none" : ModReqCC.getBungeeCordServerName()), new ArrayList<TicketFlag>());
 
         for(Player p : Bukkit.getOnlinePlayers()){
             if(p.hasPermission("modreq.moderator")){
@@ -264,7 +272,7 @@ public class TicketManager {
                 tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket " + ticketID + " teleport"));
 
                 p.spigot().sendMessage(tc);
-                p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                ScarabUtil.playNotificationSound(p);
             }
         }
 
