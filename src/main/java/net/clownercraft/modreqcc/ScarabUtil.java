@@ -34,11 +34,23 @@ public class ScarabUtil {
     public static List<String> getTicketDetails(Ticket t){
         List<String> strs = new ArrayList<String>();
 
+        String flags = "";
+        for(TicketFlag flag : t.getFlags()){
+            if(!t.getFlags().get(t.getFlags().size() - 1).equals(flag)){
+                flags += flag.getName() + ", ";
+            }else{
+                flags += flag.getName();
+            }
+        }
+        if(flags == "")
+            flags = "None";
+
         strs.add(ChatColor.BOLD + ChatColor.GREEN.toString() + "Ticket #" + t.getID());
         strs.add(ChatColor.AQUA + "Status: " + ChatColor.GRAY + (t.isClosed() ? ChatColor.RED + "Closed" : ChatColor.GREEN + "Open"));
         strs.add(ChatColor.AQUA + "Submitter: " + ChatColor.GRAY + t.getAuthor().getName());
         strs.add(ChatColor.AQUA + "World: " + ChatColor.GRAY + t.getTicketLocation().getWorld().getName());
         strs.add(ChatColor.AQUA + "Created on: " + ChatColor.GRAY + t.getCreationDate().toString());
+        strs.add(ChatColor.AQUA + "Flags: " + ChatColor.GRAY + flags);
         strs.add(ChatColor.AQUA + "Comments:");
         for(TicketComment cmnt : t.getComments()){
             strs.add("  " + ChatColor.AQUA + cmnt.getAuthor().getName() + ": " + ChatColor.GRAY + cmnt.getMessage());

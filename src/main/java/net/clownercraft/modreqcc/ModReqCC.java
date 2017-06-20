@@ -8,6 +8,7 @@ import net.clownercraft.modreqcc.command.ModReqCommand;
 import net.clownercraft.modreqcc.command.StatusCommand;
 import net.clownercraft.modreqcc.command.TicketCommand;
 import net.clownercraft.modreqcc.manager.TicketManager;
+import net.clownercraft.modreqcc.ticket.Ticket;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,16 +110,36 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
             public void run() {
 
                 int ts = 0;
+                List<Ticket> openTickets = null;
                 try {
+                    openTickets = TicketManager.getOpenTickets();
+
+                    for(Ticket t : openTickets){
+                        if(t.getFlags().contains(TicketFlag.ONLINE)){
+                            openTickets.remove(t);
+                        }
+                    }
                     ts = TicketManager.getOpenTicketAmount();
+
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    return;
                 }
                 if(ts > 0){
                     for(Player p : Bukkit.getOnlinePlayers()){
-                        if(p.hasPermission("modreqcc.moderator")){
-                            p.sendMessage(ChatColor.GOLD + "There are " + ChatColor.GREEN + ts + ChatColor.GOLD + " open tickets.");
-                            //p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                        List<Ticket> specificTickets = new CopyOnWriteArrayList<Ticket>(openTickets);
+                        for(Ticket t : specificTickets){
+                            if(t.getFlags().contains(TicketFlag.ADMIN) && !p.hasPermission("modreqcc.admin")){
+                                specificTickets.remove(t);
+                            }else if(t.getFlags().contains(TicketFlag.ONLINE) && t.getAuthor().getPlayer() == null){
+                                specificTickets.remove(t);
+                            }
+                        }
+                        if(specificTickets.size() > 0) {
+                            if (p.hasPermission("modreqcc.moderator")) {
+                                p.sendMessage(ChatColor.GOLD + "There are " + ChatColor.GREEN + specificTickets.size() + ChatColor.GOLD + " open tickets.");
+                                //p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                            }
                         }
                     }
                 }
@@ -178,13 +200,7 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
         String subchannel = in.readUTF();
         if (subchannel.equals("GetServer")) {
             serverName = in.readUTF();
-            Random r = new Random(ScarabUtil.stringToSeed(serverName));
-            try {
-                socket = new ServerSocket(r.nextInt(5535) + 6000);
-                    
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         }
     }
 }

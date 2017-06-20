@@ -1,6 +1,10 @@
 package net.clownercraft.modreqcc.command;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import net.clownercraft.modreqcc.ModReqCC;
 import net.clownercraft.modreqcc.ScarabUtil;
+import net.clownercraft.modreqcc.TicketFlag;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import net.clownercraft.modreqcc.ticket.Ticket;
 import org.apache.commons.lang.StringUtils;
@@ -62,11 +66,54 @@ public class TicketCommand implements CommandExecutor {
                         }
                         p.sendMessage(ChatColor.GREEN + (closed ? "Closed" : "Opened") + " ticket #" + t.getID());
                     }else if(args[1].equalsIgnoreCase("teleport") || args[1].equalsIgnoreCase("tp")){
-                        p.teleport(t.getTicketLocation());
-                        p.sendMessage(ChatColor.GREEN + "Teleporting to ticket #" + t.getID() + ".");
-                    }else{
+
+                        if(t.isCurrentServer()){
+                            p.teleport(t.getTicketLocation());
+                            p.sendMessage(ChatColor.GREEN + "Teleporting to ticket #" + t.getID() + ".");
+                        }else{
+                            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                            out.writeUTF("Connect");
+                            out.writeUTF(t.getServer());
+
+                            p.sendPluginMessage(ModReqCC.getPlugin(), "BungeeCord", out.toByteArray());
+                            p.sendMessage(ChatColor.GREEN + "Teleporting to server for ticket #" + t.getID() + ".");
+
+                        }
+
+                    }else if(args[1].equalsIgnoreCase("flag")){
+                        try {
+                            TicketFlag flag = TicketFlag.valueOf(args[2].toUpperCase());
+                            t.addFlag(flag);
+                            p.sendMessage(ChatColor.GREEN + "Flag \"" + flag.getName() + "\" added to ticket #" + t.getID() + ".");
+                        } catch (IllegalArgumentException e){
+                            p.sendMessage(ChatColor.RED + "Flag must be one of the following:");
+                            String flags = "";
+                            for(TicketFlag f : TicketFlag.values()){
+                                flags += f.toString();
+                            }
+                            p.sendMessage(flags);
+                        }
+
+                    } else {
                         p.sendMessage(ChatColor.RED + "Usage: /ticket [id] [comment/close/open/teleport/tp] [message]");
                     }
+                } else if(args.length == 1){
+                    Ticket t = null;
+                    try {
+                        t = TicketManager.getTicket(Integer.valueOf(args[0]));
+                    } catch (NumberFormatException e) {
+                        p.sendMessage(ChatColor.RED + "Please enter a ticket ID.");
+                        return true;
+                    }
+                    if(t == null){
+                        p.sendMessage(ChatColor.RED + "Ticket not found!");
+                        return true;
+                    }
+
+                    for(String str : ScarabUtil.getTicketDetails(t)){
+                        p.sendMessage(str);
+                    }
+
                 } else {
                     List<Ticket> tickets = null;
                     try {

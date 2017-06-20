@@ -3,6 +3,7 @@ package net.clownercraft.modreqcc.manager;
 import com.sun.org.apache.xpath.internal.operations.Mod;
 import net.clownercraft.modreqcc.ModReqCC;
 import net.clownercraft.modreqcc.ScarabUtil;
+import net.clownercraft.modreqcc.TicketFlag;
 import net.clownercraft.modreqcc.command.TicketCommand;
 import net.clownercraft.modreqcc.ticket.Ticket;
 import net.clownercraft.modreqcc.ticket.TicketComment;
@@ -10,6 +11,7 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 
@@ -36,13 +38,20 @@ public class TicketManager {
         ResultSet set = st.executeQuery();
         while(set.next()){
             List<TicketComment> cmnts = TicketManager.getTicketComments(set.getInt("id"));
+            List<TicketFlag> flags = new ArrayList<TicketFlag>();
+
+            for(String str : set.getString("flags").split(",")){
+                flags.add(TicketFlag.valueOf(str));
+            }
+
             tickets.add(new Ticket(set.getInt("id"),
                     Bukkit.getOfflinePlayer(UUID.fromString(set.getString("author"))),
                     cmnts,
                     ScarabUtil.getLocationFromString(set.getString("location")),
                     set.getBoolean("closed"),
                     set.getLong("timestamp"),
-                    set.getString("server")));
+                    set.getString("server"),
+                    flags));
         }
 
         return tickets;
@@ -60,13 +69,21 @@ public class TicketManager {
         ResultSet set = st.executeQuery();
         while(set.next()){
             List<TicketComment> cmnts = TicketManager.getTicketComments(set.getInt("id"));
+
+            List<TicketFlag> flags = new ArrayList<TicketFlag>();
+
+            for(String str : set.getString("flags").split(",")){
+                flags.add(TicketFlag.valueOf(str));
+            }
+
             tickets.add(new Ticket(set.getInt("id"),
                     Bukkit.getOfflinePlayer(UUID.fromString(set.getString("author"))),
                     cmnts,
                     ScarabUtil.getLocationFromString(set.getString("location")),
                     set.getBoolean("closed"),
                     set.getLong("timestamp"),
-                    set.getString("server")));
+                    set.getString("server"),
+                    flags));
         }
 
         return tickets;
@@ -113,12 +130,21 @@ public class TicketManager {
             st.setInt(1, id);
             ResultSet s = st.executeQuery();
             if(!s.next()) return null;
+            Location l = null;
+            if(s.getString("server").equalsIgnoreCase(ModReqCC.getBungeeCordServerName())){
+                l = ScarabUtil.getLocationFromString(s.getString("location"));
+            }
+            List<TicketFlag> flags = new ArrayList<TicketFlag>();
+
+            for(String str : s.getString("flags").split(",")){
+                flags.add(TicketFlag.valueOf(str));
+            }
 
             Ticket t = new Ticket(id, Bukkit.getOfflinePlayer(UUID.fromString(s.getString("author"))),
                     cmnts,
-                    ScarabUtil.getLocationFromString(s.getString("location")),
+                    l,
                     s.getBoolean("closed"), s.getLong("timestamp"),
-                    s.getString("server"));
+                    s.getString("server"), flags);
             return t;
 
         } catch (SQLException e) {
@@ -173,6 +199,21 @@ public class TicketManager {
 
     }
 
+    public static void addFlagToTicket(Ticket t, TicketFlag flag) throws SQLException {
+        Connection c = ModReqCC.getConnection();
+
+        PreparedStatement st = c.prepareStatement("UPDATE tickets SET flags=? WHERE id=?");
+        st.setInt(2, t.getID());
+
+        List<TicketFlag> flags = t.getFlags();
+        if(!flags.contains(flag)){
+            flags.add(flag);
+            st.setString(1, StringUtils.join(flags, ","));
+            st.executeUpdate();
+        }
+
+    }
+
     public static Ticket createTicket(Player author, String message) throws SQLException{
 
         long currTime = System.currentTimeMillis();
@@ -214,7 +255,7 @@ public class TicketManager {
 
         TicketComment comment = new TicketComment(commentID, ticketID, author, message, currTime);
 
-        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, ModReqCC.getBungeeCordServerName());
+        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, ModReqCC.getBungeeCordServerName(), new ArrayList<TicketFlag>());
 
         for(Player p : Bukkit.getOnlinePlayers()){
             if(p.hasPermission("modreq.moderator")){

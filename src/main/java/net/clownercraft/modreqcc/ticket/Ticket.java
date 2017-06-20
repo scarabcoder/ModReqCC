@@ -1,5 +1,7 @@
 package net.clownercraft.modreqcc.ticket;
 
+import net.clownercraft.modreqcc.ModReqCC;
+import net.clownercraft.modreqcc.TicketFlag;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,8 +25,9 @@ public class Ticket {
     private boolean closed;
     private long timestamp;
     private String server;
+    private List<TicketFlag> flags;
 
-    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, Location location, boolean closed, long timestamp, String server){
+    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, Location location, boolean closed, long timestamp, String server, List<TicketFlag> flags){
         this.id = id;
         this.author = author;
         this.comments = comments;
@@ -32,6 +35,22 @@ public class Ticket {
         this.closed = closed;
         this.timestamp = timestamp;
         this.server = server;
+        this.flags = flags;
+    }
+
+    public List<TicketFlag> getFlags(){
+        return flags;
+    }
+
+    public void addFlag(TicketFlag flag){
+
+        try {
+            TicketManager.addFlagToTicket(this, flag);
+            flags.add(flag);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public TicketComment addComment(Player author, String message) throws SQLException {
@@ -41,6 +60,10 @@ public class Ticket {
         }
 
         return TicketManager.addComment(this.getID(), author.getUniqueId().toString(), message);
+    }
+
+    public boolean isCurrentServer(){
+        return this.getServer().equals(ModReqCC.getBungeeCordServerName());
     }
 
     public int getID(){
