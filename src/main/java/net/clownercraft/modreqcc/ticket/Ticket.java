@@ -63,6 +63,7 @@ public class Ticket {
     }
 
     public boolean isCurrentServer(){
+        if(ModReqCC.getBungeeCordServerName() == null) return true;
         return this.getServer().equals(ModReqCC.getBungeeCordServerName());
     }
 
