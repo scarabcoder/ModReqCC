@@ -1,15 +1,12 @@
 package net.clownercraft.modreqcc.manager;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import net.clownercraft.modreqcc.ModReqCC;
 import net.clownercraft.modreqcc.ScarabUtil;
-import net.clownercraft.modreqcc.TicketFlag;
-import net.clownercraft.modreqcc.command.TicketCommand;
+import net.clownercraft.modreqcc.TicketFlagType;
 import net.clownercraft.modreqcc.ticket.Ticket;
 import net.clownercraft.modreqcc.ticket.TicketComment;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.clownercraft.modreqcc.ticket.TicketFlag;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -41,8 +38,9 @@ public class TicketManager {
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : set.getString("flags").split(",")){
-                if(str != "")
-                    flags.add(TicketFlag.valueOf(str));
+                if(str != "") {
+                    flags.add(new TicketFlag(TicketFlagType.valueOf(str.split("/")[0]), UUID.fromString(str.split("/")[1])));
+                }
             }
 
             tickets.add(new Ticket(set.getInt("id"),
@@ -74,8 +72,8 @@ public class TicketManager {
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : set.getString("flags").split(",")){
-                if(str != ""){
-                    flags.add(TicketFlag.valueOf(str));
+                if(str != "") {
+                    flags.add(new TicketFlag(TicketFlagType.valueOf(str.split("/")[0]), UUID.fromString(str.split("/")[1])));
                 }
             }
 
@@ -144,8 +142,9 @@ public class TicketManager {
             List<TicketFlag> flags = new ArrayList<TicketFlag>();
 
             for(String str : s.getString("flags").split(",")){
-                if(str != "")
-                flags.add(TicketFlag.valueOf(str));
+                if(str != "") {
+                    flags.add(new TicketFlag(TicketFlagType.valueOf(str.split("/")[0]), UUID.fromString(str.split("/")[1])));
+                }
             }
 
             Ticket t = new Ticket(id, Bukkit.getOfflinePlayer(UUID.fromString(s.getString("author"))),
@@ -214,11 +213,20 @@ public class TicketManager {
         st.setInt(2, t.getID());
 
         List<TicketFlag> flags = t.getFlags();
-        if(!flags.contains(flag)){
-            flags.add(flag);
-            st.setString(1, StringUtils.join(flags, ","));
-            st.executeUpdate();
+        boolean contains = true;
+        for(TicketFlag f : flags){
+            if(flag.getFlagType().equals(f.getFlagType())){
+                contains = false;
+            }
         }
+        if(contains)
+            flags.add(flag);
+        List<String> sFlags = new ArrayList<String>();
+        for(TicketFlag tFlag : flags){
+            sFlags.add(tFlag.getFlagType().toString() + "/" + tFlag.getSetter().getUniqueId());
+        }
+        st.setString(1, StringUtils.join(sFlags, ","));
+        st.executeUpdate();
 
     }
 

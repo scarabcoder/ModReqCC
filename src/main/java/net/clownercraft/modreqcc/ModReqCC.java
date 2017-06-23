@@ -9,6 +9,7 @@ import net.clownercraft.modreqcc.command.StatusCommand;
 import net.clownercraft.modreqcc.command.TicketCommand;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import net.clownercraft.modreqcc.ticket.Ticket;
+import net.clownercraft.modreqcc.ticket.TicketFlag;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,9 +27,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,7 +115,7 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
                     openTickets = new CopyOnWriteArrayList<Ticket>(TicketManager.getOpenTickets());
 
                     for(Ticket t : openTickets){
-                        if(t.getFlags().contains(TicketFlag.ONLINE)){
+                        if(t.getFlags().contains(TicketFlagType.ONLINE)){
                             openTickets.remove(t);
                         }
                     }
@@ -130,15 +129,20 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
                     for(Player p : Bukkit.getOnlinePlayers()){
                         List<Ticket> specificTickets = new CopyOnWriteArrayList<Ticket>(openTickets);
                         for(Ticket t : specificTickets){
-                            if(t.getFlags().contains(TicketFlag.ADMIN) && !p.hasPermission("modreqcc.admin")){
+                            if(t.getFlagTypes().contains(TicketFlagType.ADMIN) && !p.hasPermission("modreqcc.admin")){
                                 specificTickets.remove(t);
-                            }else if(t.getFlags().contains(TicketFlag.ONLINE) && t.getAuthor().getPlayer() == null){
+                            }else if(t.getFlagTypes().contains(TicketFlagType.ONLINE) && t.getAuthor().getPlayer() == null){
                                 specificTickets.remove(t);
+                            }
+                            for(TicketFlag flag : t.getFlags()){
+                                if(flag.getFlagType().equals(TicketFlagType.OTHER) && flag.getSetter().getUniqueId().equals(p.getUniqueId()) && specificTickets.contains(t)){
+                                    specificTickets.remove(t);
+                                }
                             }
                         }
                         if(specificTickets.size() > 0) {
                             if (p.hasPermission("modreqcc.moderator")) {
-                                p.sendMessage(ChatColor.GOLD + "There are " + ChatColor.GREEN + specificTickets.size() + ChatColor.GOLD + " open tickets.");
+                                p.sendMessage(ChatColor.GOLD + ChatColor.BOLD.toString() + "There are " + ChatColor.GREEN + specificTickets.size() + ChatColor.GOLD + ChatColor.BOLD.toString() + " open tickets.");
                                 //p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                             }
                         }

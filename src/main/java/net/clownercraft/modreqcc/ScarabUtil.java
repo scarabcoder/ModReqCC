@@ -2,14 +2,13 @@ package net.clownercraft.modreqcc;
 
 import net.clownercraft.modreqcc.ticket.Ticket;
 import net.clownercraft.modreqcc.ticket.TicketComment;
+import net.clownercraft.modreqcc.ticket.TicketFlag;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +38,9 @@ public class ScarabUtil {
         String flags = "";
         for(TicketFlag flag : t.getFlags()){
             if(!t.getFlags().get(t.getFlags().size() - 1).equals(flag)){
-                flags += flag.getName() + ", ";
+                flags += flag.getFlagType().getName() + ChatColor.GRAY + " (" + flag.getSetter().getName() + "), " + ChatColor.RESET;
             }else{
-                flags += flag.getName();
+                flags += flag.getFlagType().getName() + ChatColor.GRAY + " (" + flag.getSetter().getName() + ")" + ChatColor.RESET;
             }
         }
         if(flags == "")
@@ -66,7 +65,7 @@ public class ScarabUtil {
 
         String flags = "";
         for(TicketFlag flag : t.getFlags()){
-            flags += " " + ChatColor.RESET + "[" + ChatColor.DARK_AQUA + flag.toString() + ChatColor.RESET + "]";
+            flags += " " + ChatColor.RESET + "[" + ChatColor.DARK_AQUA + flag.getFlagType().toString() + ChatColor.RESET + "]";
         }
 
         System.out.println(flags);

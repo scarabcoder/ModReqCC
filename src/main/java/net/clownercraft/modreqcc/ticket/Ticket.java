@@ -1,15 +1,15 @@
 package net.clownercraft.modreqcc.ticket;
 
 import net.clownercraft.modreqcc.ModReqCC;
-import net.clownercraft.modreqcc.TicketFlag;
+import net.clownercraft.modreqcc.TicketFlagType;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -42,9 +42,18 @@ public class Ticket {
         return flags;
     }
 
-    public void addFlag(TicketFlag flag){
+    public List<TicketFlagType> getFlagTypes(){
+        List<TicketFlagType> flagTypes = new ArrayList<TicketFlagType>();
+        for(TicketFlag flag : flags){
+            flagTypes.add(flag.getFlagType());
+        }
+        return flagTypes;
+    }
+
+    public void addFlag(TicketFlagType flagType, Player setter){
 
         try {
+            TicketFlag flag = new TicketFlag(flagType, setter.getUniqueId());
             TicketManager.addFlagToTicket(this, flag);
             flags.add(flag);
         } catch (SQLException e) {
@@ -64,7 +73,7 @@ public class Ticket {
 
     public boolean isCurrentServer(){
         if(ModReqCC.getBungeeCordServerName() == null) return true;
-        return this.getServer().equals(ModReqCC.getBungeeCordServerName());
+            return this.getServer().equals(ModReqCC.getBungeeCordServerName());
     }
 
     public int getID(){

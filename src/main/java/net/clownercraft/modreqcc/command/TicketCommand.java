@@ -4,9 +4,10 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.clownercraft.modreqcc.ModReqCC;
 import net.clownercraft.modreqcc.ScarabUtil;
-import net.clownercraft.modreqcc.TicketFlag;
+import net.clownercraft.modreqcc.TicketFlagType;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import net.clownercraft.modreqcc.ticket.Ticket;
+import net.clownercraft.modreqcc.ticket.TicketFlag;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -82,13 +83,13 @@ public class TicketCommand implements CommandExecutor {
 
                     }else if(args[1].equalsIgnoreCase("flag")){
                         try {
-                            TicketFlag flag = TicketFlag.valueOf(args[2].toUpperCase());
-                            t.addFlag(flag);
-                            p.sendMessage(ChatColor.GREEN + "Flag \"" + flag.getName() + "\" added to ticket #" + t.getID() + ".");
+                            TicketFlagType flagType = TicketFlagType.valueOf(args[2].toUpperCase());
+                            t.addFlag(flagType, p);
+                            p.sendMessage(ChatColor.GREEN + "Flag \"" + flagType.getName() + "\" added to ticket #" + t.getID() + ".");
                         } catch (IllegalArgumentException e){
                             p.sendMessage(ChatColor.RED + "Flag must be one of the following:");
                             String flags = "";
-                            for(TicketFlag f : TicketFlag.values()){
+                            for(TicketFlagType f : TicketFlagType.values()){
                                 flags += f.toString();
                             }
                             p.sendMessage(flags);
