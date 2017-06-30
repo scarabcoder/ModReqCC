@@ -10,5 +10,21 @@ commands:
     description: Get status of your currently open tickets.
   ticket:
     description: Modify a specific ticket.
+    aliases: [check]
   close:
     description: Alias for /ticket <id> close
+    aliases: [done]
+  flag:
+    description: Alias for /ticket <id> flag <flag>
+    usage: /flag <id> <flag>
+  tp-id:
+    description: Alias for /ticket <id> teleport.
+  comment:
+    description: Alias for /ticket <id> comment <message>.
+  tickets:
+    description: Get all tickets for specific user.
+  modreqhelp:
+    description: Get info on all commands.
+    aliases: [mhelp, modhelp]
+  re-open:
+    description: Alias for /ticket <id> open.

@@ -5,16 +5,22 @@ package net.clownercraft.modreqcc;
  */
 public enum TicketFlagType {
 
-    ONLINE("Requires Player Online"), ADMIN("Admin Required"), OTHER("Second moderator needed");
+    ONLINE("Requires Player Online", "ON"), ADMIN("Admin Required", "AD"), OTHER("Second moderator needed", "SO");
 
     private String name;
+    private String shortName;
 
-    TicketFlagType(String name){
+    TicketFlagType(String name, String shortName){
         this.name = name;
+        this.shortName = shortName;
     }
 
     public String getName(){
         return this.name;
+    }
+
+    public String getShortName() {
+        return this.shortName;
     }
 
 }

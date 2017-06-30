@@ -6,6 +6,7 @@ import net.clownercraft.modreqcc.TicketFlagType;
 import net.clownercraft.modreqcc.ticket.Ticket;
 import net.clownercraft.modreqcc.ticket.TicketComment;
 import net.clownercraft.modreqcc.ticket.TicketFlag;
+import net.clownercraft.modreqcc.ticket.TicketLocation;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +56,47 @@ public class TicketManager {
 
         return tickets;
 
+    }
+
+    public static List<Ticket> getOpenTicketsForPlayer(OfflinePlayer p){
+        List<Ticket> tickets = new ArrayList<Ticket>();
+
+        Connection c = ModReqCC.getConnection();
+
+        PreparedStatement st = null;
+        try {
+            st = c.prepareStatement("SELECT * FROM tickets WHERE author=? AND closed=?");
+
+            st.setString(1,p.getUniqueId().toString());
+            st.setBoolean(2, false);
+
+            ResultSet set = st.executeQuery();
+            while(set.next()){
+                List<TicketComment> cmnts = TicketManager.getTicketComments(set.getInt("id"));
+
+                List<TicketFlag> flags = new ArrayList<TicketFlag>();
+
+                for(String str : set.getString("flags").split(",")){
+                    if(str != "") {
+                        flags.add(new TicketFlag(TicketFlagType.valueOf(str.split("/")[0]), UUID.fromString(str.split("/")[1])));
+                    }
+                }
+
+                tickets.add(new Ticket(set.getInt("id"),
+                        Bukkit.getOfflinePlayer(UUID.fromString(set.getString("author"))),
+                        cmnts,
+                        ScarabUtil.getLocationFromString(set.getString("location")),
+                        set.getBoolean("closed"),
+                        set.getLong("timestamp"),
+                        set.getString("server"),
+                        flags));
+            }
+
+            return tickets;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static List<Ticket> getTicketsforPlayer(OfflinePlayer p) throws SQLException {
@@ -131,7 +173,7 @@ public class TicketManager {
             st.setInt(1, id);
             ResultSet s = st.executeQuery();
             if(!s.next()) return null;
-            Location l = null;
+            TicketLocation l = null;
             String serverName = "none";
             if(ModReqCC.getBungeeCordServerName() != null){
                 serverName = ModReqCC.getBungeeCordServerName();
@@ -271,12 +313,12 @@ public class TicketManager {
 
         TicketComment comment = new TicketComment(commentID, ticketID, author, message, currTime);
 
-        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), l, false, currTime, (ModReqCC.getBungeeCordServerName() == null ? "none" : ModReqCC.getBungeeCordServerName()), new ArrayList<TicketFlag>());
+        Ticket t = new Ticket(ticketID, author, Arrays.asList(comment), new TicketLocation(l), false, currTime, (ModReqCC.getBungeeCordServerName() == null ? "none" : ModReqCC.getBungeeCordServerName()), new ArrayList<TicketFlag>());
 
         for(Player p : Bukkit.getOnlinePlayers()){
             if(p.hasPermission("modreq.moderator")){
 
-                TextComponent tc = new TextComponent(ChatColor.BOLD.toString() + ChatColor.GREEN + author.getName() + " started a ticket: \"" + message + "\" " + ChatColor.RESET + "(Click to teleport).");
+                TextComponent tc = new TextComponent(ChatColor.GREEN + ChatColor.BOLD.toString() + author.getName() + " submitted ticket " + ChatColor.GOLD + "#" + t.getID() + ChatColor.GRAY + ": " + t.getComments().get(0).getMessage());
                 tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket " + ticketID + " teleport"));
 
                 p.spigot().sendMessage(tc);

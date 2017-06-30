@@ -3,6 +3,7 @@ package net.clownercraft.modreqcc.ticket;
 import net.clownercraft.modreqcc.ModReqCC;
 import net.clownercraft.modreqcc.TicketFlagType;
 import net.clownercraft.modreqcc.manager.TicketManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -21,13 +22,13 @@ public class Ticket {
     private OfflinePlayer author;
     private int id;
     private List<TicketComment> comments;
-    private Location location;
+    private TicketLocation location;
     private boolean closed;
     private long timestamp;
     private String server;
     private List<TicketFlag> flags;
 
-    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, Location location, boolean closed, long timestamp, String server, List<TicketFlag> flags){
+    public Ticket(int id, OfflinePlayer author, List<TicketComment> comments, TicketLocation location, boolean closed, long timestamp, String server, List<TicketFlag> flags){
         this.id = id;
         this.author = author;
         this.comments = comments;
@@ -50,6 +51,7 @@ public class Ticket {
         return flagTypes;
     }
 
+
     public void addFlag(TicketFlagType flagType, Player setter){
 
         try {
@@ -62,13 +64,18 @@ public class Ticket {
 
     }
 
-    public TicketComment addComment(Player author, String message) throws SQLException {
+    public TicketComment addComment(Player author, String message, boolean notifyAuthor) throws SQLException {
 
-        if(this.getAuthor().getPlayer() != null){
-            this.getAuthor().getPlayer().sendMessage(ChatColor.GREEN + author.getName() + " added a comment to your ticket: " + message);
+        if(this.getAuthor().getPlayer() != null && notifyAuthor){
+            this.getAuthor().getPlayer().sendMessage(ChatColor.GREEN + author.getName() + " added a comment to your ticket: " + ChatColor.GRAY + message);
         }
 
+
         return TicketManager.addComment(this.getID(), author.getUniqueId().toString(), message);
+    }
+
+    public TicketComment addComment(Player author, String message) throws SQLException {
+        return this.addComment(author, message, true);
     }
 
     public boolean isCurrentServer(){
@@ -104,7 +111,7 @@ public class Ticket {
         return this.comments;
     }
 
-    public Location getTicketLocation(){
+    public TicketLocation getTicketLocation(){
         return this.location;
     }
 
@@ -112,6 +119,8 @@ public class Ticket {
         this.closed = closed;
 
         TicketManager.setClosed(this.getID(), closed);
+
+
     }
 
     public void closeTicket(){

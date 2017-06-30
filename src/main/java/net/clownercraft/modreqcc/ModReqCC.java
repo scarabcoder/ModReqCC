@@ -3,10 +3,8 @@ package net.clownercraft.modreqcc;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import net.clownercraft.modreqcc.command.CloseCommand;
-import net.clownercraft.modreqcc.command.ModReqCommand;
-import net.clownercraft.modreqcc.command.StatusCommand;
-import net.clownercraft.modreqcc.command.TicketCommand;
+import net.clownercraft.modreqcc.command.*;
+import net.clownercraft.modreqcc.listener.PlayerJoinListener;
 import net.clownercraft.modreqcc.manager.TicketManager;
 import net.clownercraft.modreqcc.ticket.Ticket;
 import net.clownercraft.modreqcc.ticket.TicketFlag;
@@ -106,49 +104,16 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
 
         this.registerCommands();
 
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
+
         BukkitRunnable r = new BukkitRunnable() {
             public void run() {
 
-                int ts = 0;
-                List<Ticket> openTickets = null;
-                try {
-                    openTickets = new CopyOnWriteArrayList<Ticket>(TicketManager.getOpenTickets());
-
-                    for(Ticket t : openTickets){
-                        if(t.getFlags().contains(TicketFlagType.ONLINE)){
-                            openTickets.remove(t);
-                        }
-                    }
-                    ts = TicketManager.getOpenTicketAmount();
-
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return;
+                for(Player p : Bukkit.getOnlinePlayers()){
+                    int open = ScarabUtil.getOpenTicketsForModerator(p);
+                    if(p.hasPermission("modreqcc.moderator") && open > 0)
+                         p.sendMessage(ChatColor.GOLD + ChatColor.BOLD.toString() + "There are " + ChatColor.GREEN + open + ChatColor.GOLD + ChatColor.BOLD.toString() + " open tickets.");
                 }
-                if(ts > 0){
-                    for(Player p : Bukkit.getOnlinePlayers()){
-                        List<Ticket> specificTickets = new CopyOnWriteArrayList<Ticket>(openTickets);
-                        for(Ticket t : specificTickets){
-                            if(t.getFlagTypes().contains(TicketFlagType.ADMIN) && !p.hasPermission("modreqcc.admin")){
-                                specificTickets.remove(t);
-                            }else if(t.getFlagTypes().contains(TicketFlagType.ONLINE) && t.getAuthor().getPlayer() == null){
-                                specificTickets.remove(t);
-                            }
-                            for(TicketFlag flag : t.getFlags()){
-                                if(flag.getFlagType().equals(TicketFlagType.OTHER) && flag.getSetter().getUniqueId().equals(p.getUniqueId()) && specificTickets.contains(t)){
-                                    specificTickets.remove(t);
-                                }
-                            }
-                        }
-                        if(specificTickets.size() > 0) {
-                            if (p.hasPermission("modreqcc.moderator")) {
-                                p.sendMessage(ChatColor.GOLD + ChatColor.BOLD.toString() + "There are " + ChatColor.GREEN + specificTickets.size() + ChatColor.GOLD + ChatColor.BOLD.toString() + " open tickets.");
-                                //p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                            }
-                        }
-                    }
-                }
-
             }
         };
         r.runTaskTimer(this, 0, 20 * 120);
@@ -188,6 +153,12 @@ public class ModReqCC extends JavaPlugin implements PluginMessageListener{
         this.getCommand("status").setExecutor(new StatusCommand());
         this.getCommand("close").setExecutor(new CloseCommand());
         this.getCommand("ticket").setExecutor(new TicketCommand());
+        this.getCommand("flag").setExecutor(new FlagCommand());
+        this.getCommand("tp-id").setExecutor(new TPIDCommand());
+        this.getCommand("comment").setExecutor(new CommentCommand());
+        this.getCommand("tickets").setExecutor(new TicketsCommand());
+        this.getCommand("modreqhelp").setExecutor(new ModReqHelpCommand());
+        this.getCommand("re-open").setExecutor(new ReOpenCommand());
     }
 
     public static String getBungeeCordServerName(){
