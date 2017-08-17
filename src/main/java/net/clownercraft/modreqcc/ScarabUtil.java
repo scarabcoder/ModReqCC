@@ -49,13 +49,14 @@ public class ScarabUtil {
                 flags += flag.getFlagType().getName() + ChatColor.GRAY + " (" + flag.getSetter().getName() + ")" + ChatColor.RESET;
             }
         }
+        TicketLocation tl = t.getTicketLocation();
         if(flags == "")
             flags = "None";
         String date = new SimpleDateFormat("MMM dd @ HH:mm").format(t.getCreationDate());
         strs.add(ChatColor.BOLD + ChatColor.GREEN.toString() + "Ticket #" + t.getID());
         strs.add(ChatColor.AQUA + "Status: " + ChatColor.GRAY + (t.isClosed() ? ChatColor.RED + "Closed" : ChatColor.GREEN + "Open"));
         strs.add(ChatColor.AQUA + "Submitter: " + ChatColor.GRAY + t.getAuthor().getName());
-        strs.add(ChatColor.AQUA + "World: " + ChatColor.GRAY + t.getTicketLocation().getWorld());
+        strs.add(ChatColor.AQUA + "World: " + tl.getWorld() + " " + (int)tl.getX() + " " + (int) tl.getY() + " " + (int) tl.getZ());
         strs.add(ChatColor.AQUA + "Created on: " + ChatColor.GRAY + date);
         strs.add(ChatColor.AQUA + "Flags: " + ChatColor.GRAY + flags);
         strs.add(ChatColor.AQUA + "Comments:");
